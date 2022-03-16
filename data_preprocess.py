@@ -9,6 +9,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np 
+from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
 '''Nettoyage. Puis se pose la question de la préparation des données proprement dite. Ces
 données nécessitent-elles un nettoyage ? Faut-il écarter certaines instances qui ne sont
 pas liées au problème ? Y a-t-il des valeurs manquantes ? Des valeurs aberrantes ? Des
@@ -133,7 +134,7 @@ class DataPreparation:
         print("Dropping the nan values...")
         data = self.data.dropna()
         data = data.sample(frac=1) # Shuffle the data
-        data = data[:20000]
+        data = data[:30000]
         # data = data[:1000]
         print("Dropping completed")
         # Subtract the start and end date in order to get the duration
@@ -219,20 +220,48 @@ class DataPreparation:
         return main_data,data["state"], data_numerical_scaled, data_categorical_encoded
 
 
-    def pretraitement(self,data, categorical=False, numerical=False):
+    def pretraitement(self,data, categorical=False, numerical=False, bayesian=False):
         '''
         Categorical:(boolean) if set to true return the already one encoded categorical data for some specific classifier such as naive bayes classifier
         '''
-        main_data,  target, data_numerical_scaled, data_categorical_encoded =self.recodage(data, binairy=True, ignored_goal=True)
+
+        main_data,  target, data_numerical_scaled, data_categorical_encoded =self.recodage(data, binairy=False, ignored_pledged=True)
         if categorical:
             return  data_categorical_encoded,target
         elif numerical:
             return data_numerical_scaled,target
+
+        elif bayesian:
+            encoder = OrdinalEncoder()
+            label_encoder = LabelEncoder()
+            data = self.nettoyage()
+            target = data["state"]
+            data.drop(["pledged"], axis=1, inplace=True)
+            data.drop(["subcategory"], axis=1, inplace=True)
+            data.drop(["state"], axis=1, inplace=True)
+            # discretize the attributes age, backers, goal,duration with equal-intervaled bins
+            age = pd.qcut(data['age'], q=10, precision=0)
+            backers = pd.qcut(data['backers'], q=3, precision=0)
+            goal = pd.qcut(data['goal'], q=10, precision=0)
+            duration = pd.cut(data['duration'], 10, precision=0)
+            data["age"] = age
+            data["backers"] = backers
+            data["goal"] = goal
+            data["duration"] = duration
+            data_encoded = encoder.fit_transform(data)
+            data_final = pd.DataFrame(data_encoded, columns=data.columns)
+            target_encoded = label_encoder.fit_transform(target)
+            # print(label_encoder.inverse_transform(target_encoded))
+            # print(data_final)
+
+
+            return data_final, target_encoded
+
         else:
             return main_data, target
          
 
-    def decoupage(self, data, categorical_data =False, numerical_data=False):
+    def decoupage(self, data, categorical_data =False, numerical_data=False, bayesian=False):
         '''
         Args:
             - X(pandas DataFrame): input data
@@ -262,6 +291,12 @@ class DataPreparation:
             # 10 % of test data and 10% of valid data and 80 % of train data
             X_train, X_test, y_train,y_test = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
             return X_train, X_valid,X_test, y_train, y_valid,y_test
+        elif bayesian:
+            data_categorical_bayes, target= self.pretraitement(data, bayesian=True)
+            X_train, X_valid, y_train,y_valid = train_test_split(data_categorical_bayes, target, test_size=0.1, random_state=42)
+            # 10 % of test data and 10% of valid data and 80 % of train data
+            X_train, X_test, y_train,y_test = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
+            return X_train, X_valid,X_test, y_train, y_valid,y_test
 
         
         else:
@@ -275,7 +310,7 @@ class DataPreparation:
             return X_train, X_valid,X_test, y_train, y_valid,y_test
 
 
-def main_data_splitter(data, categorical = False, numerical=False):
+def main_data_splitter(data, categorical = False, numerical=False, bayesian=False):
     '''
     Args: 
         - data: pandas DataFrame
@@ -310,6 +345,16 @@ def main_data_splitter(data, categorical = False, numerical=False):
         print(f'Shape of ytest {y_test.shape}')
         return X_train, X_valid,X_test, y_train, y_valid,y_test
 
+    elif bayesian:
+        X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data, bayesian=True)
+        print(f'Shape of Xtrain {X_train.shape}')
+        print(f'Shape of XValid {X_valid.shape}')
+        print(f'Shape of Xtest {X_test.shape}')
+        print(f'Shape of ytrain {y_train.shape}')
+        print(f'Shape of yvalid {y_valid.shape}')
+        print(f'Shape of ytest {y_test.shape}')
+        return X_train, X_valid,X_test, y_train, y_valid,y_test
+
 
     else:
         X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data)
@@ -325,7 +370,7 @@ def main_data_splitter(data, categorical = False, numerical=False):
 
 
 
-X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data)
+# X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, bayesian=True)
 #X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=True)
 # X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, categorical=True)
 

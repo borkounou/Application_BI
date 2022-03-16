@@ -1,5 +1,6 @@
 from matplotlib import units
-from sklearn.naive_bayes import GaussianNB
+# from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import CategoricalNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC, SVC
 from sklearn.linear_model import LogisticRegression
@@ -9,6 +10,7 @@ from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn import tree
+from sklearn import svm
 
 
 
@@ -28,7 +30,7 @@ class Classifier:
         # labels, title and ticks
         ax.set_xlabel('Predicted labels'); ax.set_ylabel('True labels')
         ax.set_title('Confusion matrix of '+classifier)
-        plt.savefig("confusion_matrix_"+classifier)
+        plt.savefig("graphs/confusion_matrix_"+classifier)
 
 
         print("Classification report of "+classifier+ " classifier on the test data ")
@@ -36,36 +38,37 @@ class Classifier:
         classification = classification_report(y_test, y_pred_test)
         print(classification)
 
-    def svm_classifier(self):
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=True)
+    def svm_classifier(self, numerical=False, categorical=False):
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=numerical, categorical=categorical)
         # initialize the svm classifier
-        svm = SVC(C=1, kernel='linear')
+        # svm = SVC(C=1, kernel='linear')
+        SVM = svm.LinearSVC(C=1.0,tol=1e-4, multi_class='ovr',max_iter=5000, penalty='l2') #LinearSVC
         print("Training the svm model in process...")
-        svm.fit(X_train, y_train)
+        SVM.fit(X_train, y_train)
         print("Training terminated")
 
-        y_pred_valid = svm.predict(X_valid)
+        y_pred_valid = SVM.predict(X_valid)
 
-        y_pred_test =  svm.predict(X_test)
+        y_pred_test =  SVM.predict(X_test)
 
         print('Accuracy of SVM classifier on training set: {:.2f}'
-            .format(svm.score(X_train, y_train)))
+            .format(SVM.score(X_train, y_train)))
 
         print('Accuracy of SVM classifier on validation set: {:.2f}'
-            .format(svm.score(X_valid, y_valid)))
+            .format(SVM.score(X_valid, y_valid)))
 
         print("Confusion matrix of validation data")
         print(confusion_matrix(y_valid, y_pred_valid))
 
         print('Accuracy of SVM classifier on test set: {:.2f}'
-            .format(svm.score(X_test, y_test)))
+            .format(SVM.score(X_test, y_test)))
 
         self.plot_confusion_matrix(y_test, y_pred_test, "svm")
         
 
     def naive_bayes_classifier(self):
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, categorical=True)
-        naive = GaussianNB()
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,bayesian=True)
+        naive = CategoricalNB()
         print("Training the naive bayes model in process...")
         naive.fit(X_train, y_train)
         print("Training terminated")
@@ -148,10 +151,10 @@ class Classifier:
         self.plot_confusion_matrix(y_test, y_pred_test, "dectree")
 
 model = Classifier()
-model.svm_classifier()
-print("#"*150)
+# model.svm_classifier(numerical=True)
+# print("#"*150)
 model.naive_bayes_classifier()
-print("#"*150)
-model.knn_classifier()
-print("#"*150)
-model.decision_tree_classifier()
+# print("#"*150)
+# model.knn_classifier()
+# print("#"*150)
+# model.decision_tree_classifier()
