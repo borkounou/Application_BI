@@ -10,6 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 import numpy as np 
 from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
+from imblearn.over_sampling import SMOTE
 '''Nettoyage. Puis se pose la question de la préparation des données proprement dite. Ces
 données nécessitent-elles un nettoyage ? Faut-il écarter certaines instances qui ne sont
 pas liées au problème ? Y a-t-il des valeurs manquantes ? Des valeurs aberrantes ? Des
@@ -45,6 +46,43 @@ class DataPreparation:
     def __init__(self, data):
         self.data = data
         self.instance_to_convert = ["sex", "category", "subcategory","state"]
+
+    def data_augmenter(self, data):
+     
+        class_label = data.state.unique()
+        print(class_label)
+        print(data["state"].value_counts())
+
+
+        # Divide by class
+        df_class_0 = data[data['state'] == "canceled"]
+        df_class_1 = data[data['state'] == "successful"]
+        df_class_2 = data[data['state'] == "failed"]
+        df_class_3 = data[data['state'] == "live"]
+        df_class_4 = data[data['state'] == "suspended"]
+        count_max = len(df_class_2.state)
+        print(count_max)
+
+        
+        # # Oversample 1-class and concat the DataFrames of both classes
+        print("Oversampling data start...")
+        df_class_0_over = df_class_0.sample(count_max, replace=True)
+        df_class_1_over = df_class_1.sample(count_max, replace=True)
+        df_class_3_over = df_class_3.sample(count_max, replace=True)
+        df_class_4_over = df_class_4.sample(count_max, replace=True)
+        # df_test_over = pd.concat([df_class_0, df_class_1_over], axis=0)
+        data_final_over =  pd.concat([df_class_0_over, df_class_1_over,df_class_2,df_class_3_over,df_class_4_over])
+
+        print("Oversampling data successful!")
+        print(data_final_over.head())
+
+        # count_class_0,count_class_1,count_class_2,count_class_3,count_class_4= data_final_over["state"].value_counts()
+        print("="*150)
+        print(data_final_over["state"].value_counts())
+
+
+        return data_final_over
+
 
     def currency_calculator(self, row_currency, row_goal):
         '''
@@ -134,7 +172,7 @@ class DataPreparation:
         print("Dropping the nan values...")
         data = self.data.dropna()
         data = data.sample(frac=1) # Shuffle the data
-        data = data[:30000]
+        #data = data[:30000]
         # data = data[:1000]
         print("Dropping completed")
         # Subtract the start and end date in order to get the duration
@@ -220,12 +258,12 @@ class DataPreparation:
         return main_data,data["state"], data_numerical_scaled, data_categorical_encoded
 
 
-    def pretraitement(self,data, categorical=False, numerical=False, bayesian=False):
+    def pretraitement(self,data, categorical=False, numerical=False, bayesian=False, data_for_bayesian=None):
         '''
         Categorical:(boolean) if set to true return the already one encoded categorical data for some specific classifier such as naive bayes classifier
         '''
 
-        main_data,  target, data_numerical_scaled, data_categorical_encoded =self.recodage(data, binairy=False, ignored_pledged=True)
+        main_data,  target, data_numerical_scaled, data_categorical_encoded =self.recodage(data, binairy=False)
         if categorical:
             return  data_categorical_encoded,target
         elif numerical:
@@ -234,22 +272,22 @@ class DataPreparation:
         elif bayesian:
             encoder = OrdinalEncoder()
             label_encoder = LabelEncoder()
-            data = self.nettoyage()
-            target = data["state"]
-            data.drop(["pledged"], axis=1, inplace=True)
-            data.drop(["subcategory"], axis=1, inplace=True)
-            data.drop(["state"], axis=1, inplace=True)
+            #data = self.nettoyage()
+            target = data_for_bayesian["state"]
+            data_for_bayesian.drop(["pledged"], axis=1, inplace=True)
+            data_for_bayesian.drop(["subcategory"], axis=1, inplace=True)
+            data_for_bayesian.drop(["state"], axis=1, inplace=True)
             # discretize the attributes age, backers, goal,duration with equal-intervaled bins
-            age = pd.qcut(data['age'], q=10, precision=0)
-            backers = pd.qcut(data['backers'], q=3, precision=0)
-            goal = pd.qcut(data['goal'], q=10, precision=0)
-            duration = pd.cut(data['duration'], 10, precision=0)
-            data["age"] = age
-            data["backers"] = backers
-            data["goal"] = goal
-            data["duration"] = duration
-            data_encoded = encoder.fit_transform(data)
-            data_final = pd.DataFrame(data_encoded, columns=data.columns)
+            age = pd.qcut(data_for_bayesian['age'], q=10, precision=0)
+            backers = pd.qcut(data_for_bayesian['backers'], q=3, precision=0)
+            goal = pd.qcut(data_for_bayesian['goal'], q=10, precision=0)
+            duration = pd.cut(data_for_bayesian['duration'], 10, precision=0)
+            data_for_bayesian["age"] = age
+            data_for_bayesian["backers"] = backers
+            data_for_bayesian["goal"] = goal
+            data_for_bayesian["duration"] = duration
+            data_encoded = encoder.fit_transform(data_for_bayesian)
+            data_final = pd.DataFrame(data_encoded, columns=data_for_bayesian.columns)
             target_encoded = label_encoder.fit_transform(target)
             # print(label_encoder.inverse_transform(target_encoded))
             # print(data_final)
@@ -261,7 +299,7 @@ class DataPreparation:
             return main_data, target
          
 
-    def decoupage(self, data, categorical_data =False, numerical_data=False, bayesian=False):
+    def decoupage(self, data, categorical_data =False, numerical_data=False, bayesian=False, data_for_bayesian=None):
         '''
         Args:
             - X(pandas DataFrame): input data
@@ -292,7 +330,7 @@ class DataPreparation:
             X_train, X_test, y_train,y_test = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
             return X_train, X_valid,X_test, y_train, y_valid,y_test
         elif bayesian:
-            data_categorical_bayes, target= self.pretraitement(data, bayesian=True)
+            data_categorical_bayes, target= self.pretraitement(data_for_bayesian, bayesian=True, data_for_bayesian=data_for_bayesian)
             X_train, X_valid, y_train,y_valid = train_test_split(data_categorical_bayes, target, test_size=0.1, random_state=42)
             # 10 % of test data and 10% of valid data and 80 % of train data
             X_train, X_test, y_train,y_test = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
@@ -309,8 +347,18 @@ class DataPreparation:
 
             return X_train, X_valid,X_test, y_train, y_valid,y_test
 
+    def print_shape(self, X_train, X_valid,X_test, y_train, y_valid,y_test):
+
+        print(f'Shape of Xtrain {X_train.shape}')
+        print(f'Shape of XValid {X_valid.shape}')
+        print(f'Shape of Xtest {X_test.shape}')
+        print(f'Shape of ytrain {y_train.shape}')
+        print(f'Shape of yvalid {y_valid.shape}')
+        print(f'Shape of ytest {y_test.shape}')
+
 
 def main_data_splitter(data, categorical = False, numerical=False, bayesian=False):
+
     '''
     Args: 
         - data: pandas DataFrame
@@ -325,53 +373,40 @@ def main_data_splitter(data, categorical = False, numerical=False, bayesian=Fals
 
     preparation = DataPreparation(data)
     data = preparation.nettoyage()
+    data = preparation.data_augmenter(data)
     if categorical:
         X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data, categorical_data=categorical)
-        print(f'Shape of Xtrain {X_train.shape}')
-        print(f'Shape of XValid {X_valid.shape}')
-        print(f'Shape of Xtest {X_test.shape}')
-        print(f'Shape of ytrain {y_train.shape}')
-        print(f'Shape of yvalid {y_valid.shape}')
-        print(f'Shape of ytest {y_test.shape}')
+
+        preparation.print_shape(X_train, X_valid,X_test, y_train, y_valid,y_test)
         return X_train, X_valid,X_test, y_train, y_valid,y_test
     
     elif numerical:
         X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data, numerical_data=numerical)
-        print(f'Shape of Xtrain {X_train.shape}')
-        print(f'Shape of XValid {X_valid.shape}')
-        print(f'Shape of Xtest {X_test.shape}')
-        print(f'Shape of ytrain {y_train.shape}')
-        print(f'Shape of yvalid {y_valid.shape}')
-        print(f'Shape of ytest {y_test.shape}')
+        preparation.print_shape(X_train, X_valid,X_test, y_train, y_valid,y_test)
+
         return X_train, X_valid,X_test, y_train, y_valid,y_test
 
     elif bayesian:
-        X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data, bayesian=True)
-        print(f'Shape of Xtrain {X_train.shape}')
-        print(f'Shape of XValid {X_valid.shape}')
-        print(f'Shape of Xtest {X_test.shape}')
-        print(f'Shape of ytrain {y_train.shape}')
-        print(f'Shape of yvalid {y_valid.shape}')
-        print(f'Shape of ytest {y_test.shape}')
+        X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data, bayesian=True, data_for_bayesian=data)
+        preparation.print_shape(X_train, X_valid,X_test, y_train, y_valid,y_test)
         return X_train, X_valid,X_test, y_train, y_valid,y_test
 
 
     else:
         X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data)
-        print(f'Shape of Xtrain {X_train.shape}')
-        print(f'Shape of XValid {X_valid.shape}')
-        print(f'Shape of Xtest {X_test.shape}')
-        print(f'Shape of ytrain {y_train.shape}')
-        print(f'Shape of yvalid {y_valid.shape}')
-        print(f'Shape of ytest {y_test.shape}')
-
+        preparation.print_shape(X_train, X_valid,X_test, y_train, y_valid,y_test)
         return X_train, X_valid,X_test, y_train, y_valid,y_test
 
 
 
 
-# X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, bayesian=True)
+X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, bayesian=True)
 #X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=True)
 # X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, categorical=True)
 
+print(X_train)
+
 # print(X_train)
+# m = DataPreparation(data)
+# data = m.nettoyage()
+# m.data_augmenter(data)

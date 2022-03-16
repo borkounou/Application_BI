@@ -41,7 +41,6 @@ class Classifier:
     def svm_classifier(self, numerical=False, categorical=False):
         X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=numerical, categorical=categorical)
         # initialize the svm classifier
-        # svm = SVC(C=1, kernel='linear')
         SVM = svm.LinearSVC(C=1.0,tol=1e-4, multi_class='ovr',max_iter=5000, penalty='l2') #LinearSVC
         print("Training the svm model in process...")
         SVM.fit(X_train, y_train)
