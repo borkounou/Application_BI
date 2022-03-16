@@ -38,8 +38,8 @@ class Classifier:
         classification = classification_report(y_test, y_pred_test)
         print(classification)
 
-    def svm_classifier(self, numerical=False, categorical=False):
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=numerical, categorical=categorical)
+    def svm_classifier(self, numerical=False, categorical=False,ignored_pledged=False,ignored_goal=False):
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=numerical, categorical=categorical, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
         # initialize the svm classifier
         SVM = svm.LinearSVC(C=1.0,tol=1e-4, multi_class='ovr',max_iter=5000, penalty='l2') #LinearSVC
         print("Training the svm model in process...")
@@ -66,7 +66,7 @@ class Classifier:
         
 
     def naive_bayes_classifier(self):
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,bayesian=True)
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, bayesian=True)
         naive = CategoricalNB()
         print("Training the naive bayes model in process...")
         naive.fit(X_train, y_train)
@@ -92,8 +92,8 @@ class Classifier:
         
         self.plot_confusion_matrix(y_test, y_pred_test, "naive")
 
-    def knn_classifier(self, k=20):
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=True)
+    def knn_classifier(self, k=20,numerical_data=False,categorical_data=False,ignored_pledged=False,ignored_goal=False):
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=numerical_data,categorical=categorical_data,ignored_pledged=ignored_pledged,ignored_goal=ignored_goal)
         print("Training the k nearest neighbors model in process...")
         knn = KNeighborsClassifier(n_neighbors=k)
         knn.fit(X_train, y_train)
@@ -120,40 +120,30 @@ class Classifier:
         
         self.plot_confusion_matrix(y_test, y_pred_test, "knn")
 
-    def decision_tree_classifier(self):
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data)
-
+    def decision_tree_classifier(self,numerical_data=False,categorical_data=False,ignored_pledged=False,ignored_goal=False):
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=numerical_data,categorical=categorical_data,ignored_pledged=ignored_pledged,ignored_goal=ignored_goal)
         dectree = tree.DecisionTreeClassifier()
-
         dectree.fit(X_train, y_train)
         print("Training terminated")
-
-        print("Training terminated")
-
         y_pred_valid = dectree.predict(X_valid)
 
         y_pred_test =  dectree.predict(X_test)
-
-
         print('Accuracy of  dectree classifier on training set: {:.2f}'
             .format(dectree.score(X_train, y_train)))
-
         print('Accuracy of dectree classifier on validation set: {:.2f}'
             .format(dectree.score(X_valid, y_valid)))
-
         print("Confusion matrix of validation data")
         print(confusion_matrix(y_valid, y_pred_valid))
-
         print('Accuracy of dectree classifier on test set: {:.2f}'
             .format(dectree.score(X_test, y_test)))
         
         self.plot_confusion_matrix(y_test, y_pred_test, "dectree")
 
 model = Classifier()
-# model.svm_classifier(numerical=True)
-# print("#"*150)
+# model.svm_classifier(numerical=True,ignored_pledged=True)
+# # print("#"*150)
 model.naive_bayes_classifier()
 # print("#"*150)
-# model.knn_classifier()
+# model.knn_classifier(k=30,numerical_data=True, ignored_pledged=True)
 # print("#"*150)
-# model.decision_tree_classifier()
+# model.decision_tree_classifier(numerical_data=True, ignored_pledged=True)
