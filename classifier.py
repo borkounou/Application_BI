@@ -2,15 +2,13 @@ from matplotlib import units
 # from sklearn.naive_bayes import GaussianNB
 from sklearn.naive_bayes import CategoricalNB
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import LinearSVC, SVC
-from sklearn.linear_model import LogisticRegression
 from sklearn.utils.class_weight import compute_sample_weight
-
 from sklearn.metrics import confusion_matrix, classification_report
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn import tree
 from sklearn import svm
+import numpy as np
 
 
 
@@ -67,15 +65,13 @@ class Classifier:
 
     def naive_bayes_classifier(self):
         X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, bayesian=True)
+
         naive = CategoricalNB()
         print("Training the naive bayes model in process...")
         naive.fit(X_train, y_train)
         print("Training terminated")
-
         y_pred_valid = naive.predict(X_valid)
-
         y_pred_test =  naive.predict(X_test)
-
 
         print('Accuracy of naive bayes classifier on training set: {:.2f}'
             .format(naive.score(X_train, y_train)))
@@ -99,8 +95,7 @@ class Classifier:
         knn.fit(X_train, y_train)
         print("Training terminated")
 
-        print("Training terminated")
-
+       
         y_pred_valid = knn.predict(X_valid)
 
         y_pred_test =  knn.predict(X_test)
@@ -142,8 +137,8 @@ class Classifier:
 model = Classifier()
 # model.svm_classifier(numerical=True,ignored_pledged=True)
 # # print("#"*150)
-model.naive_bayes_classifier()
-# print("#"*150)
-# model.knn_classifier(k=30,numerical_data=True, ignored_pledged=True)
-# print("#"*150)
-# model.decision_tree_classifier(numerical_data=True, ignored_pledged=True)
+#model.naive_bayes_classifier()
+print("#"*150)
+model.knn_classifier(k=10, ignored_pledged=True)
+print("#"*150)
+model.decision_tree_classifier(ignored_pledged=True)
