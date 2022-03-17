@@ -1,14 +1,12 @@
-import pandas as pd 
-import numpy as np
-import matplotlib.pyplot as plt
 
-# le nom du fichier des données à utiliser pour le projet donné
-path = "projects.csv"
+from classifier import Classifier
 
-
-data = pd.read_csv(path, encoding="ISO-8859-1")
-
-
-def nettoyage(data):
-    # drop the nan value 
-    pass
+if __name__=="__main__":
+    model = Classifier()
+    model.svm_classifier(numerical=True,ignored_pledged=True)
+    print("#"*150)
+    model.naive_bayes_classifier()
+    print("#"*150)
+    model.knn_classifier(k=10,numerical_data=True, ignored_pledged=True)
+    print("#"*150)
+    model.decision_tree_classifier(numerical_data=True,ignored_pledged=True)
