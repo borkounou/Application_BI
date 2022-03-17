@@ -262,20 +262,20 @@ class DataPreparation:
             data.drop(["subcategory"], axis=1, inplace=True)
             data.drop(["state"], axis=1, inplace=True)
             data.drop(["backers"], axis=1, inplace=True)
+            data.drop(["duration"], axis=1, inplace=True)
             # discretize the attributes age, backers, goal,duration with equal-intervaled bins
             age = pd.qcut(data['age'], q=10, precision=0)
             # backers = pd.cut(data['backers'], 10, precision=0)
             goal = pd.qcut(data['goal'], q=10, precision=0)
-            duration = pd.cut(data['duration'], 10, precision=0)
+            #duration = pd.cut(data['duration'], 10, precision=0)
             data["age"] = age
             # data["backers"] = backers
             data["goal"] = goal
-            data["duration"] = duration
+            #data["duration"] = duration
             data_encoded = encoder.fit_transform(data)
             data_final = pd.DataFrame(data_encoded, columns=data.columns)
             target_encoded = label_encoder.fit_transform(target)
             # print(label_encoder.inverse_transform(target_encoded))
-            # print(data_final)
             return data_final, target_encoded
 
         else:

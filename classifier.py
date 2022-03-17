@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from sklearn import tree
 from sklearn import svm
 import numpy as np
-
+import pickle
 
 
 # local package
@@ -37,12 +37,15 @@ class Classifier:
         print(classification)
 
     def svm_classifier(self, numerical=False, categorical=False,ignored_pledged=False,ignored_goal=False):
+        model_name ='models/svm_classifier_model.sav'
         X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=numerical, categorical=categorical, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
         # initialize the svm classifier
         SVM = svm.LinearSVC(C=1.0,tol=1e-4, multi_class='ovr',max_iter=5000, penalty='l2') #LinearSVC
         print("Training the svm model in process...")
         SVM.fit(X_train, y_train)
         print("Training terminated")
+        
+        pickle.dump(SVM,open(model_name,'wb'))
 
         y_pred_valid = SVM.predict(X_valid)
 
@@ -69,6 +72,8 @@ class Classifier:
         naive = CategoricalNB()
         print("Training the naive bayes model in process...")
         naive.fit(X_train, y_train)
+        model_name ='models/naive_classifier_model.sav'
+        pickle.dump(naive,open(model_name,'wb'))
         print("Training terminated")
         y_pred_valid = naive.predict(X_valid)
         y_pred_test =  naive.predict(X_test)
@@ -93,6 +98,8 @@ class Classifier:
         print("Training the k nearest neighbors model in process...")
         knn = KNeighborsClassifier(n_neighbors=k)
         knn.fit(X_train, y_train)
+        model_name ='models/knn_classifier_model.sav'
+        pickle.dump(knn,open(model_name,'wb'))
         print("Training terminated")
 
        
@@ -119,6 +126,9 @@ class Classifier:
         X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=numerical_data,categorical=categorical_data,ignored_pledged=ignored_pledged,ignored_goal=ignored_goal)
         dectree = tree.DecisionTreeClassifier()
         dectree.fit(X_train, y_train)
+        model_name ='models/dectree_classifier_model.sav'
+        pickle.dump(dectree,open(model_name,'wb'))
+        
         print("Training terminated")
         y_pred_valid = dectree.predict(X_valid)
 
@@ -135,10 +145,10 @@ class Classifier:
         self.plot_confusion_matrix(y_test, y_pred_test, "dectree")
 
 model = Classifier()
-# model.svm_classifier(numerical=True,ignored_pledged=True)
-# # print("#"*150)
-#model.naive_bayes_classifier()
+model.svm_classifier(numerical=True,ignored_pledged=True)
 print("#"*150)
-model.knn_classifier(k=10, ignored_pledged=True)
+model.naive_bayes_classifier()
 print("#"*150)
-model.decision_tree_classifier(ignored_pledged=True)
+model.knn_classifier(k=10,numerical_data=True, ignored_pledged=True)
+print("#"*150)
+model.decision_tree_classifier(numerical_data=True,ignored_pledged=True)
