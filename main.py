@@ -14,5 +14,9 @@ if __name__=="__main__":
     print("#"*150)
     model.svm_classifier(numerical=True,ignored_pledged=True)
     print("#"*150)
+    print("SVM with all data: categorical and numerical")
+    model.svm_classifier(ignored_pledged=True)
+    print("#"*150)
+    print("Training the multi class neural network model")
     train_model()
     

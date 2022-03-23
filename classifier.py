@@ -34,7 +34,8 @@ class Classifier:
 
     def svm_classifier(self, numerical=False, categorical=False,ignored_pledged=False,ignored_goal=False):
         model_name ='models/svm_classifier_model.sav'
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=numerical, categorical=categorical, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=numerical, 
+        categorical=categorical, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
         # initialize the svm classifier
         SVM = svm.LinearSVC(C=1.0,tol=1e-4, multi_class='ovr',max_iter=10000, penalty='l2') #LinearSVC
         print("Training the svm model in process...")
@@ -103,7 +104,8 @@ class Classifier:
         self.plot_confusion_matrix(y_train, y_pred_train, "naive")
 
     def knn_classifier(self, k=20,numerical_data=False,categorical_data=False,ignored_pledged=False,ignored_goal=False):
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=numerical_data,categorical=categorical_data,ignored_pledged=ignored_pledged,ignored_goal=ignored_goal)
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=numerical_data,categorical=categorical_data,
+        ignored_pledged=ignored_pledged,ignored_goal=ignored_goal)
         print(X_valid.shape)
 
         print("Training the k nearest neighbors model in process...")
@@ -140,7 +142,8 @@ class Classifier:
         self.plot_confusion_matrix(y_train, y_pred_train, "knn")
 
     def decision_tree_classifier(self,numerical_data=False,categorical_data=False,ignored_pledged=False,ignored_goal=False):
-        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=numerical_data,categorical=categorical_data,ignored_pledged=ignored_pledged,ignored_goal=ignored_goal)
+        X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=numerical_data,
+        categorical=categorical_data,ignored_pledged=ignored_pledged,ignored_goal=ignored_goal)
         dectree = tree.DecisionTreeClassifier()
         dectree.fit(X_train, y_train)
         model_name ='models/dectree_classifier_model.sav'
@@ -167,12 +170,3 @@ class Classifier:
         self.plot_confusion_matrix(y_valid, y_pred_valid, "dectree")
         print("classification of train data")
         self.plot_confusion_matrix(y_train, y_pred_train, "dectree")
-
-# model = Classifier()
-# model.svm_classifier(numerical=True,ignored_pledged=True)
-# print("#"*150)
-# model.naive_bayes_classifier()
-# print("#"*150)
-# model.knn_classifier(k=10,numerical_data=True, ignored_pledged=True)
-# print("#"*150)
-# model.decision_tree_classifier(numerical_data=True,ignored_pledged=True)

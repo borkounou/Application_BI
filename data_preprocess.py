@@ -236,7 +236,6 @@ class DataPreparation:
             data_final = pd.DataFrame(data_encoded, columns=data.columns)
             target_encoded = label_encoder.fit_transform(target)
             # print(label_encoder.inverse_transform(target_encoded))
-            print(data_final.head())
             return data_final, target_encoded
         else:
             return main_data, target
@@ -244,14 +243,10 @@ class DataPreparation:
     def train_validate_test_split(self,df, train_percent=.6, validate_percent=.2, seed=None):
         np.random.seed(seed)
         perm = np.random.permutation(df.index)
-
         m = len(df.index)
-        print(m)
         train_end = int(train_percent * m)
-
         validate_end = int(validate_percent * m) + train_end
         train = df.loc[perm[:train_end]]
-
         validate = df.loc[perm[train_end:validate_end]]
         test = df.loc[perm[validate_end:]]
         return train, validate, test
@@ -269,13 +264,8 @@ class DataPreparation:
             - y_valid
             - y_test
         '''
-        print(type(data))
-        #train, validate, test = np.split(data.sample(frac=1, random_state=42), [int(.8*len(data)), int(.9*len(data))])
         train, validate, test = self.train_validate_test_split(data)
-        print(type(train))
-        print(train.shape)
-        print(validate.shape)
-        print(test.shape)
+      
         train= self.data_augmenter(train)
         if categorical_data:
             x_train, y_train = self.pretraitement(train, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
@@ -328,11 +318,13 @@ def main_data_splitter(data, categorical = False, numerical=False, bayesian=Fals
     preparation = DataPreparation(data)
     data = preparation.nettoyage()
     if categorical:
-        x_train, x_valid,x_test, y_train, y_valid,y_test = preparation.decoupage(data, categorical_data=categorical, binary=binary, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
+        x_train, x_valid,x_test, y_train, y_valid,y_test = preparation.decoupage(data, categorical_data=categorical, binary=binary,
+         ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
         preparation.print_shape(x_train, x_valid,x_test, y_train, y_valid,y_test)
         return x_train, x_valid,x_test, y_train, y_valid,y_test
     if numerical:
-        x_train, x_valid,x_test, y_train, y_valid,y_test = preparation.decoupage(data, numerical_data=numerical,binary=binary, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
+        x_train, x_valid,x_test, y_train, y_valid,y_test = preparation.decoupage(data, numerical_data=numerical,binary=binary, 
+        ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
         preparation.print_shape(x_train, x_valid,x_test, y_train, y_valid,y_test)
         return x_train, x_valid,x_test, y_train, y_valid,y_test
     if bayesian:
@@ -345,69 +337,3 @@ def main_data_splitter(data, categorical = False, numerical=False, bayesian=Fals
         return x_train, x_valid,x_test, y_train, y_valid,y_test
 
 
-
-
-# x_train, x_valid,x_test, y_train, y_valid,y_test= main_data_splitter(data,ignored_pledged=True)
-# # x_train, x_valid,x_test, y_train, y_valid,y_test= main_data_splitter(data,categorical=True, ignored_pledged=True)
-# # # # x_train, x_valid,x_test, y_train, y_valid,y_test= main_data_splitter(data, categorical=True)
-
-# print(x_train.shape)
-# print(x_valid.shape)
-
-# def train_validate_test_split(df, train_percent=.6, validate_percent=.2, seed=None):
-#     np.random.seed(seed)
-#     perm = np.random.permutation(df.index)
-#     print(perm)
-#     m = len(df.index)
-#     train_end = int(train_percent * m)
-    
-#     validate_end = int(validate_percent * m) + train_end
-#     train = df.iloc[perm[:train_end]]
-#     validate = df.iloc[perm[train_end:validate_end]]
-#     test = df.iloc[perm[validate_end:]]
-#     return train, validate, test
-
-
-# print(type(data))
-# train, validate, test = train_validate_test_split(data)
-
-# print(train.shape)
-# print(validate.shape)
-# print(test.shape)
-# print(type(train))
-# print(type(x_train))s
-# print(y_train)
-
-# print(x_train)
-# scaler = StandardScaler()
-# m = DataPreparation(data)
-# data = m.nettoyage()
-# train, validate, test = np.split(data.sample(frac=1, random_state=42), [int(.8*len(data)), int(.9*len(data))])
-# data_numerical = train.select_dtypes(exclude='object')
-
-# data_numerical_scaled = pd.DataFrame(scaler.fit_transform(data_numerical), columns=data_numerical.columns)
-# print(data_numerical_scaled)
-# m.data_augmenter(data)
-
-
-# m = DataPreparation(data)
-# df = m.nettoyage()
-# train, validate, test = np.split(df.sample(frac=1, random_state=42), [int(.8*len(df)), int(.9*len(df))])
-# print(len(df))
-# print(len(train))
-# print(len(validate))
-# print(len(test))
-# print(type(df))
-# print(type(train))
-# m = DataPreparation(data)
-# data = m.nettoyage()
-# y = data["state"]
-# print(y)
-# X = data#data.drop("state", axis=1)
-# print(X)
-
-
-# x_train, x_valid, y_train, y_valid=train_test_split(X,y, test_size=0.2, random_state=42)
-
-# print(x_train)
-# print(type(x_train))
