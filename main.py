@@ -1,12 +1,18 @@
 
 from classifier import Classifier
+from model import train_model
 
 if __name__=="__main__":
     model = Classifier()
-    model.svm_classifier(numerical=True,ignored_pledged=True)
+    # model.svm_classifier(numerical=True,ignored_pledged=True)
     print("#"*150)
     model.naive_bayes_classifier()
     print("#"*150)
-    model.knn_classifier(k=10,numerical_data=True, ignored_pledged=True)
+    model.knn_classifier(k=10,numerical_data=True,ignored_pledged=True)
     print("#"*150)
     model.decision_tree_classifier(numerical_data=True,ignored_pledged=True)
+    print("#"*150)
+    model.svm_classifier(numerical=True,ignored_pledged=True)
+    print("#"*150)
+    train_model()
+    

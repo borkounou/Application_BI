@@ -1,32 +1,11 @@
 
 import pandas as pd 
-import matplotlib.pyplot as plt
-import datetime
-pd.options.mode.chained_assignment = None 
-
-
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
 import numpy as np 
+import datetime
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder, LabelEncoder
-from imblearn.over_sampling import SMOTE
-'''Nettoyage. Puis se pose la question de la préparation des données proprement dite. Ces
-données nécessitent-elles un nettoyage ? Faut-il écarter certaines instances qui ne sont
-pas liées au problème ? Y a-t-il des valeurs manquantes ? Des valeurs aberrantes ? Des
-attributs redondants ? Des attributs superflus ? Les valeurs numériques correspondent-elles
-vraiment à des attributs de nature numérique, ordinale, ou catégorielle ? Comment traiter
-ces différents problèmes ?'''
-
-
-
-'''
-Recodage. En fonction des algorithmes de fouille que vous allez appliquer, il peut être nécessaire de recoder certains champs : discrétisation d’attributs réels, catégorisation d’attributs
-numériques, normalisation d’attributs numériques, numérisation d’attributs catégoriels... Certains outils ne peuvent pas du tout être appliqués sur des données dont le codage n’est
-pas approprié. D’autres fonctionneront mieux pour certains codages. Il est recommandé de
-tester l’effet du codage sur les différents outils considérés
-
-'''
+pd.options.mode.chained_assignment = None 
 
 # Data path 
 path = "../data/projects.csv"
@@ -34,7 +13,6 @@ path = "../data/projects.csv"
 data = pd.read_csv(path, encoding="ISO-8859-1")
 
 class DataPreparation:
-
     '''
     Args:
         - data: Pandas dataframe
@@ -56,7 +34,6 @@ class DataPreparation:
         df_class_4 = data[data['state'] == "suspended"]
         count_max = len(df_class_2.state)
         print(count_max)
-
         # # Oversample 1-class and concat the DataFrames of both classes
         print("Oversampling data start...")
         df_class_0_over = df_class_0.sample(count_max, replace=True)
@@ -64,63 +41,57 @@ class DataPreparation:
         df_class_3_over = df_class_3.sample(count_max, replace=True)
         df_class_4_over = df_class_4.sample(count_max, replace=True)
         data_final_over =  pd.concat([df_class_0_over, df_class_1_over,df_class_2,df_class_3_over,df_class_4_over])
-
         print("Oversampling data successful!")
-
         print("="*150)
         print(data_final_over["state"].value_counts())
         print("="*150)
-
-
+        
         return data_final_over
-
 
     def currency_calculator(self, row_currency, row_goal):
         '''
-        This function converts the different currency into euro: it is a currency converter, it converts the pledged and goal attributes
+        This function converts the different currency into euro: it is a currency converter, 
+        it converts the pledged and goal attributes
             Args:
                 - row_currency(String): currency type of different nations
                 - row_goal(Float): money to be converted
-
             Return 
                 - euro(float): currency converted to Euro
-
         '''
         if row_currency== "USD":
             exchange =0.91
             euro = exchange * row_goal
             return euro
-        elif row_currency == "CAD":
+        if row_currency == "CAD":
             exchange =0.71
             euro = exchange * row_goal
             return euro
-        elif row_currency == "GBP":
+        if row_currency == "GBP":
             exchange =1.19
             euro = exchange * row_goal
             return euro
-
-        elif row_currency == "AUD":
+        if row_currency == "AUD":
             exchange =0.66
             euro = exchange * row_goal
             return euro
-        elif row_currency == "DKK":
+        if row_currency == "DKK":
             exchange =0.13
             euro = exchange * row_goal
             return euro
-        elif row_currency == "SEK":
+        if row_currency == "SEK":
             exchange =0.09
             euro = exchange * row_goal
             return euro
 
-        elif row_currency == "NOK":
+        if row_currency == "NOK":
             exchange =0.10
             euro = exchange * row_goal
             return euro
-        elif row_currency =="NZD":
+        if row_currency =="NZD":
             exchange = 0.62
             euro = exchange * row_goal
             return euro
-        elif row_currency == "CHF":
+        if row_currency == "CHF":
             exchange =0.97
             euro = exchange * row_goal
             return euro
@@ -135,11 +106,9 @@ class DataPreparation:
         Args:
             - start_date(String): starting date
             - end_date(String): Ending date
-
         Return:
             -absolute(duration.days)(int)
         '''
-
         start = datetime.datetime.strptime(start_date,'%Y-%m-%d %H:%M:%S' )
         end = datetime.datetime.strptime(end_date,'%Y-%m-%d %H:%M:%S' )
         duration = start -end
@@ -151,20 +120,18 @@ class DataPreparation:
         else:
             return 0
 
-
     def nettoyage(self):
         '''
-        This function drops the nan values, convert the datetime into a duration, convert the different currencies into euro, and drops the attributes which are of no use
-
+        This function drops the nan values, convert the datetime into a duration, 
+        convert the different currencies into euro, and drops the attributes which are of no use
         return:
             - data: a pandas DataFrame
         '''
         # drop the nan values 
         print("Dropping the nan values...")
         data = self.data.dropna()
-        data = data.sample(frac=1) # Shuffle the data
-        #data = data[:30000]
-        # data = data[:1000]
+       
+        # data =data[:30000]
         print("Dropping completed")
         # Subtract the start and end date in order to get the duration
         data["duration"] = data[["start_date", "end_date"]].apply(lambda x:self.date_to_duration(*x), axis=1)
@@ -172,10 +139,8 @@ class DataPreparation:
         data['goal'] = data[["currency","goal"]].apply(lambda x:self.currency_calculator(*x),axis=1)
         # Convert all the currency for pledged attribute into Euro
         data['pledged'] = data[["currency","pledged"]].apply(lambda x:self.currency_calculator(*x), axis=1)
-
         # As drop the already used attributes or useless attributes such name, and Id
         data.drop(["start_date", "end_date","id", "currency", "name"], axis=1, inplace=True)
-    
         return data
     
     def recodage(self, data, binairy=False, ignored_goal=False, ignored_pledged=False):
@@ -186,7 +151,6 @@ class DataPreparation:
              - main_data: input data  
              - data["state"]: target data
         '''
-
         scaler = StandardScaler()
         if binairy:
             data["state"] = data.state.apply(lambda x:self.class_binary(x))
@@ -208,7 +172,6 @@ class DataPreparation:
             main_data = pd.concat([data_numerical_scaled, data_categorical_encoded], axis=1)
 
             return main_data,data["state"], data_numerical_scaled, data_categorical_encoded
-
         else:
             # Separate the data  into the numerical and categorical
             # Normalization of data with numerical attributes
@@ -231,7 +194,7 @@ class DataPreparation:
             #convert the target class or the class to be predicted into numerical form
             unique_target =  data["state"].unique()
             print(f"The unique element of the target class {unique_target}")
-            label_to_num = dict()
+            label_to_num = {}
             for idx in range(len(unique_target)):
                 label_to_num[unique_target[idx]] = idx
 
@@ -239,24 +202,21 @@ class DataPreparation:
            
             return main_data,data["state"], data_numerical_scaled, data_categorical_encoded
 
-
     def pretraitement(self,data, categorical=False, numerical=False, bayesian=False, binary=False,ignored_goal=False,ignored_pledged=False):
         '''
-        Categorical:(boolean) if set to true return the already one encoded categorical data for some specific classifier such as naive bayes classifier
+        Categorical:(boolean) if set to true return categorical data for some specific 
+        classifier such as naive bayes classifier
         Args:
           -data(Pandas DataFrame): Already one-hot-encoded dataframe. It contains
         '''
-
         main_data,  target, data_numerical_scaled, data_categorical_encoded =self.recodage(data, binairy=binary,ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
         if categorical:
             return  data_categorical_encoded,target
         if numerical:
             return data_numerical_scaled,target
-
         if bayesian:
             encoder = OrdinalEncoder()
             label_encoder = LabelEncoder()
-            #data = self.nettoyage()
             target = data["state"]
             data.drop(["pledged"], axis=1, inplace=True)
             data.drop(["subcategory"], axis=1, inplace=True)
@@ -264,7 +224,7 @@ class DataPreparation:
             data.drop(["backers"], axis=1, inplace=True)
             data.drop(["duration"], axis=1, inplace=True)
             # discretize the attributes age, backers, goal,duration with equal-intervaled bins
-            age = pd.qcut(data['age'], q=10, precision=0)
+            age = pd.cut(data['age'], 10, precision=0)
             # backers = pd.cut(data['backers'], 10, precision=0)
             goal = pd.qcut(data['goal'], q=10, precision=0)
             #duration = pd.cut(data['duration'], 10, precision=0)
@@ -276,72 +236,76 @@ class DataPreparation:
             data_final = pd.DataFrame(data_encoded, columns=data.columns)
             target_encoded = label_encoder.fit_transform(target)
             # print(label_encoder.inverse_transform(target_encoded))
+            print(data_final.head())
             return data_final, target_encoded
-
         else:
-           
             return main_data, target
-         
 
+    def train_validate_test_split(self,df, train_percent=.6, validate_percent=.2, seed=None):
+        np.random.seed(seed)
+        perm = np.random.permutation(df.index)
+
+        m = len(df.index)
+        print(m)
+        train_end = int(train_percent * m)
+
+        validate_end = int(validate_percent * m) + train_end
+        train = df.loc[perm[:train_end]]
+
+        validate = df.loc[perm[train_end:validate_end]]
+        test = df.loc[perm[validate_end:]]
+        return train, validate, test
+         
     def decoupage(self, data, categorical_data =False, numerical_data=False, bayesian=False, binary=False,ignored_goal=False,ignored_pledged=False):
         '''
         Args:
             - X(pandas DataFrame): input data
             - y(pandas DataFrame): target data
-        
         Return:
-            - X_train
-            - X_valid
-            - X_test
+            - x_train
+            - x_valid
+            - x_test
             - y_train 
             - y_valid
             - y_test
-
         '''
-
-        train, validate, test = np.split(data.sample(frac=1, random_state=42), [int(.8*len(data)), int(.9*len(data))])
-        train= self.data_augmenter(train)
-        print(train.head())
+        print(type(data))
+        #train, validate, test = np.split(data.sample(frac=1, random_state=42), [int(.8*len(data)), int(.9*len(data))])
+        train, validate, test = self.train_validate_test_split(data)
         print(type(train))
-
-
+        print(train.shape)
+        print(validate.shape)
+        print(test.shape)
+        train= self.data_augmenter(train)
         if categorical_data:
-            X_train, y_train = self.pretraitement(train, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            X_valid, y_valid = self.pretraitement(validate, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            X_test, y_test = self.pretraitement(test, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            return X_train, X_valid,X_test, y_train, y_valid,y_test
-
-        elif numerical_data:
-            X_train, y_train = self.pretraitement(train, numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            X_valid, y_valid = self.pretraitement(validate,numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            X_test, y_test = self.pretraitement(test, numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            return X_train, X_valid,X_test, y_train, y_valid,y_test
-        elif bayesian:
-            X_train, y_train = self.pretraitement(train, bayesian=True)
-            X_valid, y_valid = self.pretraitement(validate, bayesian=True)
-            X_test, y_test = self.pretraitement(test, bayesian=True)
-            return X_train, X_valid,X_test, y_train, y_valid,y_test
-
-        
+            x_train, y_train = self.pretraitement(train, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_valid, y_valid = self.pretraitement(validate, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_test, y_test = self.pretraitement(test, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            return x_train, x_valid,x_test, y_train, y_valid,y_test
+        if numerical_data:
+            x_train, y_train = self.pretraitement(train, numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_valid, y_valid = self.pretraitement(validate,numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_test, y_test = self.pretraitement(test, numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            return x_train, x_valid,x_test, y_train, y_valid,y_test
+        if bayesian:
+            x_train, y_train = self.pretraitement(train, bayesian=bayesian)
+            x_valid, y_valid = self.pretraitement(validate, bayesian=bayesian)
+            x_test, y_test = self.pretraitement(test, bayesian=bayesian)
+            return x_train, x_valid,x_test, y_train, y_valid,y_test
         else:
-            main_data, target = self.pretraitement(data)
-            # Split the data into train, validation and test dataset 
-            # 10 % of validation data
-            X_train, X_valid, y_train,y_valid = train_test_split(main_data, target, test_size=0.1, random_state=42)
             # 10 % of test data and 10% of valid data and 80 % of train data
-            X_train, X_test, y_train,y_test = train_test_split(X_train, y_train, test_size=0.1, random_state=42)
+            x_train, y_train = self.pretraitement(train, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
+            x_valid, y_valid = self.pretraitement(validate, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
+            x_test, y_test = self.pretraitement(test)
+            return x_train, x_valid,x_test, y_train, y_valid,y_test
 
-            return X_train, X_valid,X_test, y_train, y_valid,y_test
-
-    def print_shape(self, X_train, X_valid,X_test, y_train, y_valid,y_test):
-
-        print(f'Shape of Xtrain {X_train.shape}')
-        print(f'Shape of XValid {X_valid.shape}')
-        print(f'Shape of Xtest {X_test.shape}')
-        print(f'Shape of ytrain {y_train.shape}')
-        print(f'Shape of yvalid {y_valid.shape}')
-        print(f'Shape of ytest {y_test.shape}')
-
+    def print_shape(self, x_train, x_valid,x_test, y_train, y_valid,y_test):
+        print('Shape of Xtrain {}'.format(x_train.shape))
+        print('Shape of XValid {}'.format(x_valid.shape))
+        print('Shape of Xtest {}'.format(x_test.shape))
+        print('Shape of ytrain {}'.format(y_train.shape))
+        print('Shape of yvalid {}'.format(y_valid.shape))
+        print('Shape of ytest {}'.format(y_test.shape))
 
 def main_data_splitter(data, categorical = False, numerical=False, bayesian=False, binary=False,ignored_goal=False,ignored_pledged=False):
     '''
@@ -354,52 +318,67 @@ def main_data_splitter(data, categorical = False, numerical=False, bayesian=Fals
         - ignored_goal(Boolean)
         - ignored_pledged(Boolean)
     Return:
-        - X_train
-        - X_valid
-        - X_test
+        - x_train
+        - x_valid
+        - x_test
         - y_train 
         - y_valid
         - y_test
     '''
     preparation = DataPreparation(data)
     data = preparation.nettoyage()
-
-
     if categorical:
-        X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data, categorical_data=categorical, binary=binary, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
-
-        preparation.print_shape(X_train, X_valid,X_test, y_train, y_valid,y_test)
-        return X_train, X_valid,X_test, y_train, y_valid,y_test
-    
-    elif numerical:
-        X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data, numerical_data=numerical,binary=binary, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
-        preparation.print_shape(X_train, X_valid,X_test, y_train, y_valid,y_test)
-
-        return X_train, X_valid,X_test, y_train, y_valid,y_test
-
-    elif bayesian:
-        X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data, bayesian=True)
-        preparation.print_shape(X_train, X_valid,X_test, y_train, y_valid,y_test)
-        return X_train, X_valid,X_test, y_train, y_valid,y_test
-
-
+        x_train, x_valid,x_test, y_train, y_valid,y_test = preparation.decoupage(data, categorical_data=categorical, binary=binary, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
+        preparation.print_shape(x_train, x_valid,x_test, y_train, y_valid,y_test)
+        return x_train, x_valid,x_test, y_train, y_valid,y_test
+    if numerical:
+        x_train, x_valid,x_test, y_train, y_valid,y_test = preparation.decoupage(data, numerical_data=numerical,binary=binary, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
+        preparation.print_shape(x_train, x_valid,x_test, y_train, y_valid,y_test)
+        return x_train, x_valid,x_test, y_train, y_valid,y_test
+    if bayesian:
+        x_train, x_valid,x_test, y_train, y_valid,y_test = preparation.decoupage(data, bayesian=bayesian)
+        preparation.print_shape(x_train, x_valid,x_test, y_train, y_valid,y_test)
+        return x_train, x_valid,x_test, y_train, y_valid,y_test
     else:
-        X_train, X_valid,X_test, y_train, y_valid,y_test = preparation.decoupage(data)
-        preparation.print_shape(X_train, X_valid,X_test, y_train, y_valid,y_test)
-        return X_train, X_valid,X_test, y_train, y_valid,y_test
+        x_train, x_valid,x_test, y_train, y_valid,y_test= preparation.decoupage(data)
+        preparation.print_shape(x_train, x_valid,x_test, y_train, y_valid,y_test)
+        return x_train, x_valid,x_test, y_train, y_valid,y_test
 
 
 
 
-# X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, bayesian=True)
-# X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, numerical=True)
-# X_train, X_valid,X_test, y_train, y_valid,y_test= main_data_splitter(data, categorical=True)
+# x_train, x_valid,x_test, y_train, y_valid,y_test= main_data_splitter(data,ignored_pledged=True)
+# # x_train, x_valid,x_test, y_train, y_valid,y_test= main_data_splitter(data,categorical=True, ignored_pledged=True)
+# # # # x_train, x_valid,x_test, y_train, y_valid,y_test= main_data_splitter(data, categorical=True)
 
-# print(X_train.values)
-# print(type(X_train))
+# print(x_train.shape)
+# print(x_valid.shape)
+
+# def train_validate_test_split(df, train_percent=.6, validate_percent=.2, seed=None):
+#     np.random.seed(seed)
+#     perm = np.random.permutation(df.index)
+#     print(perm)
+#     m = len(df.index)
+#     train_end = int(train_percent * m)
+    
+#     validate_end = int(validate_percent * m) + train_end
+#     train = df.iloc[perm[:train_end]]
+#     validate = df.iloc[perm[train_end:validate_end]]
+#     test = df.iloc[perm[validate_end:]]
+#     return train, validate, test
+
+
+# print(type(data))
+# train, validate, test = train_validate_test_split(data)
+
+# print(train.shape)
+# print(validate.shape)
+# print(test.shape)
+# print(type(train))
+# print(type(x_train))s
 # print(y_train)
 
-# print(X_train)
+# print(x_train)
 # scaler = StandardScaler()
 # m = DataPreparation(data)
 # data = m.nettoyage()
@@ -428,7 +407,7 @@ def main_data_splitter(data, categorical = False, numerical=False, bayesian=Fals
 # print(X)
 
 
-# X_train, X_valid, y_train, y_valid=train_test_split(X,y, test_size=0.2, random_state=42)
+# x_train, x_valid, y_train, y_valid=train_test_split(X,y, test_size=0.2, random_state=42)
 
-# print(X_train)
-# print(type(X_train))
+# print(x_train)
+# print(type(x_train))
