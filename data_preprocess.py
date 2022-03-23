@@ -268,14 +268,20 @@ class DataPreparation:
       
         train= self.data_augmenter(train)
         if categorical_data:
-            x_train, y_train = self.pretraitement(train, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            x_valid, y_valid = self.pretraitement(validate, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            x_test, y_test = self.pretraitement(test, categorical=categorical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_train, y_train = self.pretraitement(train, categorical=categorical_data,binary=binary, 
+            ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_valid, y_valid = self.pretraitement(validate, categorical=categorical_data,binary=binary, 
+            ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_test, y_test = self.pretraitement(test, categorical=categorical_data,binary=binary, 
+            ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
             return x_train, x_valid,x_test, y_train, y_valid,y_test
         if numerical_data:
-            x_train, y_train = self.pretraitement(train, numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            x_valid, y_valid = self.pretraitement(validate,numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
-            x_test, y_test = self.pretraitement(test, numerical=numerical_data,binary=binary, ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_train, y_train = self.pretraitement(train, numerical=numerical_data,binary=binary, 
+            ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_valid, y_valid = self.pretraitement(validate,numerical=numerical_data,binary=binary, 
+            ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
+            x_test, y_test = self.pretraitement(test, numerical=numerical_data,binary=binary, 
+            ignored_goal=ignored_goal,ignored_pledged=ignored_pledged)
             return x_train, x_valid,x_test, y_train, y_valid,y_test
         if bayesian:
             x_train, y_train = self.pretraitement(train, bayesian=bayesian)
@@ -284,8 +290,10 @@ class DataPreparation:
             return x_train, x_valid,x_test, y_train, y_valid,y_test
         else:
             # 10 % of test data and 10% of valid data and 80 % of train data
-            x_train, y_train = self.pretraitement(train, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
-            x_valid, y_valid = self.pretraitement(validate, ignored_goal=ignored_goal, ignored_pledged=ignored_pledged)
+            x_train, y_train = self.pretraitement(train, ignored_goal=ignored_goal, 
+            ignored_pledged=ignored_pledged)
+            x_valid, y_valid = self.pretraitement(validate, ignored_goal=ignored_goal,
+             ignored_pledged=ignored_pledged)
             x_test, y_test = self.pretraitement(test)
             return x_train, x_valid,x_test, y_train, y_valid,y_test
 

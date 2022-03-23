@@ -7,11 +7,10 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
-
+from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import confusion_matrix, classification_report
-
 from data_preprocess import data, main_data_splitter
+
 x_train, x_valid,x_test, y_train, y_valid,y_test= main_data_splitter(data,numerical=True, ignored_pledged=True)
 
 EPOCHS = 3
